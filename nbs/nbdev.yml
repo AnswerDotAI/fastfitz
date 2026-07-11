@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "fastfitz"
+  site-url: "https://AnswerDotAI.github.io/fastfitz"
+  description: "An ergonomic, fastai-style wrapper over PyMuPDF (fitz) for reading, searching, and visually previewing PDFs"
+  repo-branch: main
+  repo-url: "https://github.com/AnswerDotAI/fastfitz"

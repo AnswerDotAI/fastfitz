@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastfitz"
+dynamic = ["version"]
+description = "An ergonomic, fastai-style wrapper over PyMuPDF (fitz) for reading, searching, and visually previewing PDFs"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "AGPL-3.0"}
+authors = [{name = "fastfitz contributors", email = "nc@answer.ai"}]
+keywords = ['pdf', 'pymupdf', 'fitz']
+classifiers = [
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = ['pymupdf', 'fastcore']
+
+[project.urls]
+Repository = "https://github.com/AnswerDotAI/fastfitz"
+Documentation = "https://AnswerDotAI.github.io/fastfitz/"
+
+[project.entry-points.nbdev]
+fastfitz = "fastfitz._modidx:d"
+
+[project.entry-points.pyskills]
+fastfitz = "fastfitz.skill"
+
+[tool.setuptools.dynamic]
+version = {attr = "fastfitz.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["fastfitz"]
+
+[tool.nbdev]
