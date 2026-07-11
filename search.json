@@ -1,0 +1,92 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "fastfitz",
+    "section": "",
+    "text": "fastfitz adds a small ergonomic layer over PyMuPDF: page-tagged text extraction, document-level search returning (page, rects) pairs, and search-driven visual previews (pg.preview('some clause') renders just the matched region). Pages get a _repr_png_, so a bare Page expression displays itself in any rich frontend – Jupyter, solveit, or an AI-driven kernel.",
+    "crumbs": [
+      "fastfitz"
+    ]
+  },
+  {
+    "objectID": "index.html#license",
+    "href": "index.html#license",
+    "title": "fastfitz",
+    "section": "License",
+    "text": "License\nPyMuPDF is AGPL-3.0, and therefore fastfitz is AGPL-3.0 too. Installing it is an explicit opt-in to that license; if AGPL doesn’t work for your use, Artifex sells commercial PyMuPDF licenses, or see permissively-licensed alternatives like pypdfium2.",
+    "crumbs": [
+      "fastfitz"
+    ]
+  },
+  {
+    "objectID": "index.html#install",
+    "href": "index.html#install",
+    "title": "fastfitz",
+    "section": "Install",
+    "text": "Install\npip install fastfitz\nfastfitz also registers a pyskill, so AI kernels with pyskills discovery gain PDF viewing automatically when fastfitz is installed.",
+    "crumbs": [
+      "fastfitz"
+    ]
+  },
+  {
+    "objectID": "index.html#quick-start",
+    "href": "index.html#quick-start",
+    "title": "fastfitz",
+    "section": "Quick start",
+    "text": "Quick start\n\nimport fitz\nfrom fastfitz.core import *\n\npdf = fitz.open('some.pdf')\nprint(pdf.text(pages=[0]))                # cheap first: page-tagged text\nhits = pdf.search_for('Delaware')         # [(page, rects)] across the document\nhits[0][0].preview('Delaware')            # render just the matched region\npdf[0]                                    # bare page displays itself",
+    "crumbs": [
+      "fastfitz"
+    ]
+  },
+  {
+    "objectID": "core.html",
+    "href": "core.html",
+    "title": "core",
+    "section": "",
+    "text": "fastfitz is a small ergonomic layer over PyMuPDF for working with PDFs interactively – in Jupyter, solveit, or an AI-driven kernel. The design rule: reach for text first (cheap, precise), and for pixels only when layout matters. When you do need pixels, previews should be searchable and croppable so you render just the region you care about, not whole pages.\nNote that PyMuPDF is AGPL-3.0 licensed, and therefore so is fastfitz.\nfrom fastcore.test import *",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "core.html#a-sample-document",
+    "href": "core.html#a-sample-document",
+    "title": "core",
+    "section": "A sample document",
+    "text": "A sample document\nWe build a small two-page PDF right here, so the demos below are deterministic and self-contained.\n\nsmpl = fitz.open()\nfor lines in (['CERTIFICATE OF INCORPORATION','OF','EXAMPLE CORP','a Delaware corporation'],\n              ['ARTICLE ONE','The name of the corporation is','Example Corp']):\n    pg = smpl.new_page()\n    for j,l in enumerate(lines): pg.insert_text((72, 92+24*j), l, fontsize=14)\npg0 = smpl[0]",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "core.html#text",
+    "href": "core.html#text",
+    "title": "core",
+    "section": "Text",
+    "text": "Text\nMost questions about a PDF are answered by its text. Document.text gives the whole document (or chosen pages) in one string, with page markers so line references stay grounded.\n\n\nDocument.text\ndef text(\n    pages:NoneType=None\n)-&gt;str:\nPlain text of pages (default: all), with --- page N --- separators\n\nt = smpl.text()\nassert 'CERTIFICATE OF INCORPORATION' in t and '--- page 1 ---' in t\nassert 'ARTICLE ONE' not in smpl.text(pages=[0])\nprint(t)\n\n--- page 0 ---\nCERTIFICATE OF INCORPORATION\nOF\nEXAMPLE CORP\na Delaware corporation\n--- page 1 ---\nARTICLE ONE\nThe name of the corporation is\nExample Corp",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "core.html#search",
+    "href": "core.html#search",
+    "title": "core",
+    "section": "Search",
+    "text": "Search\nPage.search_for returns the rects where a string appears; we lift it to the document level, returning (page, rects) pairs for pages with hits. The rects are the bridge between text and pixels: find something textually, then render exactly where it lives.\n\n\nDocument.search_for\ndef search_for(\n    q\n)-&gt;list:\n(page, rects) for each page where q matches; pages without hits are dropped\n\nhits = smpl.search_for('corporation')\ntest_eq([p.number for p,_ in hits], [0, 1])\ntest_eq(smpl.search_for('nonexistent'), [])\nhits\n\n[(page 0 of &lt;None, doc# 1&gt;,\n  [Rect(205.0139923095703, 76.94999694824219, 309.2439880371094, 96.18599700927734),\n   Rect(146.6900177001953, 148.9499969482422, 216.71800231933594, 168.18600463867188)]),\n (page 1 of &lt;None, doc# 1&gt;,\n  [Rect(177.83999633789062, 100.94999694824219, 247.86798095703125, 120.18599700927734)])]",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "core.html#preview",
+    "href": "core.html#preview",
+    "title": "core",
+    "section": "Preview",
+    "text": "Preview\nPage.preview renders to a PNG Image in three modes: the whole page, a clip rect, or – the interesting one – the union of the rects matching a query q. Since search_for returns one rect per line, the union spans line breaks, so a match that wraps still comes back as one readable crop.\nThe default dpi=150 puts a US Letter page at ~1650px on the long edge: comfortably readable for vision models while staying cheap. Drop it lower for thumbnails, raise it for fine print.\n\n\nPage.preview\ndef preview(\n    q:NoneType=None, clip:NoneType=None, dpi:int=150\n):\nRender as a PNG Image: the whole page, a clip rect, or the union of rects matching q\n\nassert pg0.preview().data[:8] == b'\\x89PNG\\r\\n\\x1a\\n'\ntest_fail(lambda: pg0.preview('missing text'), contains='not found')\npg0.preview()\n\n\n\n\n\n\n\n\nThe query mode crops to just the matched region:\n\npg0.preview('CERTIFICATE OF INCORPORATION')\n\n\n\n\n\n\n\n\n…and an explicit clip renders any rect you like:\n\npg0.preview(clip=fitz.Rect(0, 0, 306, 200))\n\n\n\n\n\n\n\n\n\n\nPages display themselves\nWith a _repr_png_, a bare Page expression renders visually in any rich frontend.\n\nassert pg0._repr_png_()[:8] == b'\\x89PNG\\r\\n\\x1a\\n'\npg0\n\n\n\n\n\n\n\n\nThe idioms compose: search the document, preview the hit.\n\np,_ = smpl.search_for('Delaware')[0]\np.preview('Delaware')",
+    "crumbs": [
+      "core"
+    ]
+  }
+]
